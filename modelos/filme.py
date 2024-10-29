@@ -1,5 +1,7 @@
+import sqlite3
 
 from modelos.avaliacao import Avaliacao
+
 
 class Filme:
     filmes = []
@@ -16,9 +18,21 @@ class Filme:
     
     @classmethod
     def listar_filmes(cls):
-        print(f"{'Nome do Filme'.ljust(25)} | {'Categoria'.ljust(25)} | {'Assistido'.ljust(25)} | {'Nota'}")
-        for Filme in cls.filmes:
-            print(f'{Filme._nome.ljust(25)} | {Filme._categoria.ljust(25)} | {Filme.assistido.ljust(25)} | {Filme.media_avaliacao}')
+        # print(f"{'Nome do Filme'.ljust(25)} | {'Categoria'.ljust(25)} | {'Assistido'.ljust(25)} | {'Nota'}")
+        # for Filme in cls.filmes:
+        #     print(f'{Filme._nome.ljust(25)} | {Filme._categoria.ljust(25)} | {Filme.assistido.ljust(25)} | {Filme.media_avaliacao}')
+
+        banco = sqlite3.connect('banco.db')
+        cursor = banco.cursor()
+        cursor.execute("SELECT * FROM filmes")
+        Filmes = cursor.fetchall()
+        for Filme in Filmes:
+            print(print(f'{Filme._nome.ljust(25)} | {Filme._categoria.ljust(25)} | {Filme.assistido.ljust(25)} | {Filme.media_avaliacao}'))
+        
+        banco.close()
+
+
+
 
     @property
     def assistido(self):
