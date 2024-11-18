@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filme Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 {
+            color: #333;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        .tab:hover {
+            background-color: #0056b3;
+        }
+        .tab.active {
+            background-color: #0056b3;
+        }
+        .tab-content {
+            display: none;
+            width: 80%;
+            max-width: 600px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 300px; /* Diminuir o tamanho do campo de busca */
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #results {
+            width: 80%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #fff;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <script>
+        function openTab(evt, tabName) {
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            const tabs = document.getElementsByClassName('tab');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+
+        async function searchFilmes() {
+            const term = document.getElementById('searchTerm').value;
+            const response = await fetch(`/search?term=${term}`);
+            const results = await response.json();
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            if (results.length === 0) {
+                resultsDiv.innerHTML = '<p>No results found</p>';
+                return;
+            }
+
+            const ul = document.createElement('ul');
+            results.forEach(filme => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    Id: ${filme.idfilme}, Nome: ${filme.nome}, Categoria: ${filme.categoria}, Assistido: ${filme.assistido}
+                    <button onclick="updateAssistido(${filme.idfilme}, ${!filme.assistido})">
+                        Marcar como ${filme.assistido ? 'Não Assistido' : 'Assistido'}
+                    </button>
+                `;
+                ul.appendChild(li);
+            });
+            resultsDiv.appendChild(ul);
+        }
+
+        async function updateAssistido(idfilme, assistido) {
+            const response = await fetch('/update', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ idfilme: idfilme, assistido: assistido })
+            });
+
+            const result = await response.json();
+            alert(result.message || 'Status de assistido atualizado com sucesso!');
+            searchFilmes(); // Atualiza a lista de filmes após a atualização
+        }
+
+        async function insertFilme() {
+            const title = document.getElementById('title').value;
+            const genre = document.getElementById('genre').value;
+
+            const response = await fetch('/insert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ titulo: title, genero: genre })
+            });
+
+            const result = await response.json();
+            alert(result.message || 'Filme inserido com sucesso!');
+        }
+    </script>
+</head>
+<body>
+    <h1>Gerenciamento de Filmes</h1>
+    <div class="tabs">
+        <button class="tab active" onclick="openTab(event, 'searchTab')">Buscar</button>
+        <button class="tab" onclick="openTab(event, 'insertTab')">Inserir</button>
+    </div>
+    <div id="searchTab" class="tab-content active">
+        <h2>Buscar Filmes</h2>
+        <form onsubmit="event.preventDefault(); searchFilmes();">
+            <input type="text" id="searchTerm" placeholder="Digite o termo de busca">
+            <button type="submit">Buscar</button>
+        </form>
+        <div id="results"></div>
+    </div>
+    <div id="insertTab" class="tab-content">
+        <h2>Inserir Filme</h2>
+        <form onsubmit="event.preventDefault(); insertFilme();">
+            <input type="text" id="title" placeholder="Digite o título do filme">
+            <input type="text" id="genre" placeholder="Digite o gênero do filme">
+            <button type="submit">Inserir</button>
+        </form>
+    </div>
+</body>
+</html>

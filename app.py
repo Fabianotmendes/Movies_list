@@ -17,7 +17,18 @@ class App:
         def search():
             search_term = request.args.get('term', '')
             results = FilmeController.select_like(search_term)
-            return jsonify(results)
+            
+            formatted_results = [
+                {
+                    'idfilme': filme[0],
+                    'nome': filme[1],
+                    'categoria': filme[2],
+                    'assistido': False if filme[3] == 0 else True
+                }
+                for filme in results
+            ]
+            
+            return jsonify(formatted_results)
 
         @self.app.route('/insert', methods=['POST'])
         def insert():
